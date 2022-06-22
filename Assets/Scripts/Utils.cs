@@ -292,6 +292,11 @@ public class Utils {
             powerups = Resources.LoadAll<Powerup>("Scriptables/Powerups");
 
         GetCustomProperty(Enums.NetRoomProperties.NewPowerups, out bool custom);
+        GetCustomProperty(Enums.NetRoomProperties.Lives, out int livesOn);
+        if (livesOn > 0)
+        {
+            bool lives = true;
+        }
         bool big = gm.spawnBigPowerups;
         bool vertical = gm.spawnVerticalPowerups;
 
