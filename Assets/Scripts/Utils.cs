@@ -293,10 +293,10 @@ public class Utils {
 
         GetCustomProperty(Enums.NetRoomProperties.NewPowerups, out bool custom);
         GetCustomProperty(Enums.NetRoomProperties.Lives, out int livesOn);
+        bool lives = false;
         if (livesOn > 0)
-        {
-            bool lives = true;
-        }
+           lives = true;
+
         bool big = gm.spawnBigPowerups;
         bool vertical = gm.spawnVerticalPowerups;
 
@@ -304,7 +304,7 @@ public class Utils {
         foreach (Powerup powerup in powerups) {
             if (powerup.name == "MegaMushroom" && GameManager.Instance.musicState == Enums.MusicState.MegaMushroom)
                 continue;
-            if ((powerup.big && !big) || (powerup.vertical && !vertical) || (powerup.custom && !custom))
+            if ((powerup.big && !big) || (powerup.vertical && !vertical) || (powerup.custom && !custom) || (powerup.lives && !lives))
                 continue;
 
             totalChance += powerup.GetModifiedChance(losing);
@@ -314,7 +314,7 @@ public class Utils {
         foreach (Powerup powerup in powerups) {
             if (powerup.name == "MegaMushroom" && gm.musicState == Enums.MusicState.MegaMushroom)
                 continue;
-            if ((powerup.big && !big) || (powerup.vertical && !vertical) || (powerup.custom && !custom))
+            if ((powerup.big && !big) || (powerup.vertical && !vertical) || (powerup.custom && !custom) || (powerup.lives && !lives))
                 continue;
 
             float chance = powerup.GetModifiedChance(losing);

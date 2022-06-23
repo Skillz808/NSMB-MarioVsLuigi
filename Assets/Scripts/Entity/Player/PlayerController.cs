@@ -781,6 +781,7 @@ public class PlayerController : MonoBehaviourPun, IFreezableEntity, IPunObservab
             lives++;
             UpdateGameState();
             PlaySound(powerup.soundEffect);
+            GameObject thing = (GameObject)Instantiate(Resources.Load("Prefabs/Particle/1Up"), transform.position, Quaternion.identity);
 
             if (view.IsMine)
                 PhotonNetwork.Destroy(view);
