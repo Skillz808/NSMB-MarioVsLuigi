@@ -111,6 +111,7 @@ public class Utils {
             worldLocation += (Vector3) it.offset * 0.5f;
 
         Vector3Int tileLocation = WorldToTilemapPosition(worldLocation);
+        Matrix4x4 transform = GameManager.Instance.tilemap.GetTransformMatrix(tileLocation);
 
         Sprite sprite = GameManager.Instance.tilemap.GetSprite(tileLocation);
         switch (GetColliderType(tileLocation)) {
@@ -123,6 +124,9 @@ public class Utils {
                 List<Vector2> points = new();
                 sprite.GetPhysicsShape(i, points);
 
+                for (int j = 0; j < points.Count; j++)
+                    points[i] = transform.MultiplyPoint3x4(points[i]);
+                
                 Vector2 tilePosition = TilemapToWorldPosition(WorldToTilemapPosition(worldLocation));
                 if (IsInside(points.ToArray(), (Vector2) ogWorldLocation - tilePosition))
                     return true;
@@ -295,7 +299,7 @@ public class Utils {
         GetCustomProperty(Enums.NetRoomProperties.Lives, out int livesOn);
         bool lives = false;
         if (livesOn > 0)
-           lives = true;
+            lives = true;
 
         bool big = gm.spawnBigPowerups;
         bool vertical = gm.spawnVerticalPowerups;
