@@ -627,7 +627,7 @@ public class MainMenuManager : MonoBehaviour, ILobbyCallbacks, IInRoomCallbacks,
     }
     public void OpenMainMenu() {
         title.SetActive(false);
-        bg.SetActive(true);
+        bg.SetActive(false);
         mainMenu.SetActive(true);
         optionsMenu.SetActive(false);
         controlsMenu.SetActive(false);

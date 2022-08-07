@@ -18,8 +18,8 @@ public class PipeButton : MonoBehaviour {
         button = GetComponent<Button>();
         image = GetComponentInChildren<Image>();
         anchor = leftAnchored ? rect.anchorMax : rect.anchorMin;
-        adjustedAnchor = anchor + Vector2.right * (leftAnchored ? -0.1f : 0.1f);
-        disabledColor = new(deselectedColor.r, deselectedColor.g, deselectedColor.b, deselectedColor.a/2f);
+        adjustedAnchor = anchor + Vector2.right * (leftAnchored ? -0.05f : 0.05f);
+        disabledColor = new(deselectedColor.r, deselectedColor.g, deselectedColor.b, deselectedColor.a);
     }
 
     public void Update() {
