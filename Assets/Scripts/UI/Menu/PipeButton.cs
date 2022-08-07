@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class PipeButton : MonoBehaviour {
 
@@ -12,8 +13,10 @@ public class PipeButton : MonoBehaviour {
     private Image image;
     private RectTransform rect;
     private Vector2 anchor, adjustedAnchor;
+    private TextMeshProUGUI buttonText;
 
     public void Start() {
+        buttonText = GetComponentInChildren<TextMeshProUGUI>();
         rect = GetComponent<RectTransform>();
         button = GetComponent<Button>();
         image = GetComponentInChildren<Image>();
@@ -31,9 +34,11 @@ public class PipeButton : MonoBehaviour {
         if (EventSystem.current.currentSelectedGameObject == gameObject) {
             SetAnchor(anchor);
             image.color = selectedColor;
+            buttonText.color = new Color32 (240,240,0,255);
         } else {
             SetAnchor(adjustedAnchor);
             image.color = deselectedColor;
+            buttonText.color = new Color32 (138,138,138,255);
         }
     }
 
