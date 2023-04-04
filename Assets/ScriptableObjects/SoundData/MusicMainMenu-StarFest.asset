@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f75ce5d91f7ab344aaab1a8902dcd8b0, type: 3}
   m_Name: MusicMainMenu-StarFest
   m_EditorClassIdentifier: 
-  clip: {fileID: 8300000, guid: c9850c9bc8b015b4eb42ff8acd836e8b, type: 3}
-  loopStartSeconds: 39.272
-  loopEndSeconds: 78.558
+  clip: {fileID: 8300000, guid: 5b220049329bc8d43a253cfea1586a52, type: 3}
+  loopStartSeconds: 0
+  loopEndSeconds: -1
   fastClip: {fileID: 0}
   speedupFactor: 1.25

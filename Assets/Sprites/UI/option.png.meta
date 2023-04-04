@@ -3,7 +3,7 @@ guid: 919785a51397c1a44816e9462ed989f9
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
-  serializedVersion: 11
+  serializedVersion: 12
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -25,7 +25,7 @@ TextureImporter:
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMasterTextureLimit: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -65,6 +65,7 @@ TextureImporter:
   ignorePngGamma: 0
   applyGammaDecoding: 0
   swizzle: 50462976
+  cookieLightType: 1
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
@@ -729,6 +730,90 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: option_white
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 48
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 6, y: 8, z: 8, w: 6}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a7f37d409dbd7394e999313e128abcb9
+      internalID: 162277276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: option_white_selected
+      rect:
+        serializedVersion: 2
+        x: 272
+        y: 48
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 6, y: 8, z: 8, w: 6}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d9c51a730df95354caa3d19419c8c694
+      internalID: -1449023884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: option_white_pressed
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 48
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 7, y: 7, z: 7, w: 7}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c2c5e6d9aa536140a738d2a4422a45b
+      internalID: 1543177997
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: option_white_disabled
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 48
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 6, y: 8, z: 8, w: 6}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a46e6c844608c9e4e9f3c5832d5e2284
+      internalID: 46997474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -740,36 +825,40 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      bar_yellow_selected: -1311239854
-      option_green_pressed: 1611290607
-      option_red_pressed: 87811832
-      bar_green_pressed: 1253250550
       bar_green: 1988032188
-      option_green_disabled: 613028815
-      option_yellow_selected: -634966080
-      option_red_selected: 1150358858
-      bar_green_filled: 2056141543
-      option_red_disabled: 1657813663
-      option_yellow_pressed: 1292347602
-      bar_yellow_filled: 850112226
-      bar_yellow: 1573181257
-      bar_green_selected: 1264872561
-      option_meter_dis: 2135415530
-      option_yellow_disabled: 918296707
-      bar_yellow_pressed: 1361422749
-      option_green: -655794942
-      option_blue_disabled: 1291356150
-      bar_green_empty: 654580174
-      option_yellow: -1008673158
       bar_green_disabled: -136452746
-      option_green_selected: -808684277
+      bar_green_empty: 654580174
+      bar_green_filled: 2056141543
+      bar_green_pressed: 1253250550
+      bar_green_selected: 1264872561
       bar_yelllow_empty: -93316979
-      option_red: -248825290
+      bar_yellow: 1573181257
       bar_yellow_disabled: 594883156
+      bar_yellow_filled: 850112226
+      bar_yellow_pressed: 1361422749
+      bar_yellow_selected: -1311239854
+      option_blue: 921158468
+      option_blue_disabled: 1291356150
       option_blue_pressed: 995382058
       option_blue_selected: 1303659493
-      option_blue: 921158468
-  spritePackingTag: 
+      option_green: -655794942
+      option_green_disabled: 613028815
+      option_green_pressed: 1611290607
+      option_green_selected: -808684277
+      option_meter_dis: 2135415530
+      option_red: -248825290
+      option_red_disabled: 1657813663
+      option_red_pressed: 87811832
+      option_red_selected: 1150358858
+      option_white: 162277276
+      option_white_disabled: 46997474
+      option_white_pressed: 1543177997
+      option_white_selected: -1449023884
+      option_yellow: -1008673158
+      option_yellow_disabled: 918296707
+      option_yellow_pressed: 1292347602
+      option_yellow_selected: -634966080
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
   assetBundleName: 
