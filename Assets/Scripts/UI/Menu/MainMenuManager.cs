@@ -40,7 +40,7 @@ public class MainMenuManager : Singleton<MainMenuManager> {
     [SerializeField] private CanvasGroup hostControlsGroup;
     [SerializeField] private NetworkErrorPrompt networkErrorPrompt;
 
-    [SerializeField] private GameObject title, bg, mainMenu, lobbyMenu, createLobbyPrompt, privateRoomIdPrompt, inLobbyMenu, creditsMenu, updateBox, connecting;
+    [SerializeField] private GameObject title, bg, mainMenu, starFest, lobbyMenu, createLobbyPrompt, privateRoomIdPrompt, inLobbyMenu, creditsMenu, updateBox, connecting;
     [SerializeField] private GameObject sliderText, currentMaxPlayers, settingsPanel;
     [SerializeField] private GameObject errorBox, errorButton;
     [SerializeField] private TMP_Dropdown levelDropdown, characterDropdown, regionDropdown;
@@ -235,6 +235,7 @@ public class MainMenuManager : Singleton<MainMenuManager> {
         title.SetActive(false);
         bg.SetActive(false);
         mainMenu.SetActive(false);
+        starFest.SetActive(false);
         lobbyMenu.SetActive(false);
         createLobbyPrompt.SetActive(false);
         inLobbyMenu.SetActive(false);
@@ -245,13 +246,14 @@ public class MainMenuManager : Singleton<MainMenuManager> {
     public void OpenTitleScreen() {
         DisableAllMenus();
         title.SetActive(true);
+        starFest.SetActive(true);
 
         EventSystem.current.SetSelectedGameObject(mainMenuSelected);
     }
     public void OpenMainMenu() {
         DisableAllMenus();
-        bg.SetActive(true);
         mainMenu.SetActive(true);
+        starFest.SetActive(true);
 
         EventSystem.current.SetSelectedGameObject(mainMenuSelected);
 
