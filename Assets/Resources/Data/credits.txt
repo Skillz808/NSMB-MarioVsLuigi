@@ -2,6 +2,9 @@
 <color=yellow>Game by</color>
 ipodtouch0218
 
+<color=yellow> Mod by</color>
+<color=green> Skillz</color>
+
 <color=yellow>Github Contributors</color>
 Amy54Desu
 AtwerJ
@@ -16,7 +19,7 @@ Kraken
 mindnomad
 Pordrack
 skarph
-Skillz
+<color=green> Skillz</color>
 ShadowWalker
 TheMoogle
 VLC

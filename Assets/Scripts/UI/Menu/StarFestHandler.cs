@@ -9,6 +9,7 @@ public class StarFestHandler : MonoBehaviour //This script handles everything to
 {
     [Header("UI References")]
     public TextMeshProUGUI countdownText;
+    public TextMeshProUGUI teamText;
     public GameObject starfestPrompt;
     public GameObject teamImageOne;
     public GameObject teamImageTwo;
@@ -22,13 +23,23 @@ public class StarFestHandler : MonoBehaviour //This script handles everything to
     public GameObject teamName2;
     public GameObject teamSliceOneMenu;
     public GameObject teamSliceTwoMenu;
+    public GameObject starfestRoomButton;
+    
     
     
     [Header("Other Properties")]
     public int chosenTeam = 0;
     public DateTime starfestStartTime;
+    DateTime startTime = DateTime.MinValue;
+    DateTime endTime = DateTime.MinValue;
+    public Team[]           teams;
     private TimeSpan timeRemainingToStart;
     private TimeSpan timeRemainingToFinish;
+    string teamColor1 = "#FFFFFF";
+    string teamColor2 = "#FFFFFF";
+    string team1Name = "Team 1";
+    string team2Name = "Team 2";
+    
 
     void Start()
     {
@@ -48,17 +59,12 @@ public class StarFestHandler : MonoBehaviour //This script handles everything to
             if (request.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogError(request.error);
-                countdownText.text = "Cannot connect to Starfest server... feel free to spam Skillz#6262 on Discord until they fix it!";
+                countdownText.text = "Failed to connect to the Starfest API...";
+                starfestRoomButton.SetActive(false);
                 yield break;
             }
 
             DateTime now = DateTime.Now;
-            DateTime startTime = DateTime.MinValue;
-            DateTime endTime = DateTime.MinValue;
-            string team1Name = "Team 1";
-            string team2Name = "Team 2";
-            string teamColor1 = "#FFFFFF";
-            string teamColor2 = "#FFFFFF";
             bool foundStarfest = false;
 
             // Parse the JSON response to extract the start time
@@ -103,6 +109,9 @@ public class StarFestHandler : MonoBehaviour //This script handles everything to
                 SetGraphicColor(teamSliceTwo, "#F0C000");
                 SetGraphicColor(teamSliceOneMenu, "#F0C000");
                 SetGraphicColor(teamSliceTwoMenu, "#F0C000");
+                if (ColorUtility.TryParseHtmlString("#F0C000", out Color newColor1)) teams[0].color = newColor1;
+                if (ColorUtility.TryParseHtmlString("#F0C000", out Color newColor2)) teams[1].color = newColor2;
+                starfestRoomButton.SetActive(false);
             yield break;
         }
         else{
@@ -116,6 +125,8 @@ public class StarFestHandler : MonoBehaviour //This script handles everything to
                 SetGraphicColor(teamSliceTwo, teamColor2);
                 SetGraphicColor(teamSliceOneMenu, teamColor1);
                 SetGraphicColor(teamSliceTwoMenu, teamColor2);
+                if (ColorUtility.TryParseHtmlString(teamColor1, out Color newColor1)) teams[0].color = newColor1;
+                if (ColorUtility.TryParseHtmlString(teamColor2, out Color newColor2)) teams[1].color = newColor2;
 
             teamName1.GetComponent<TextMeshProUGUI>().text = team1Name;
             teamName2.GetComponent<TextMeshProUGUI>().text = team2Name;
@@ -123,17 +134,17 @@ public class StarFestHandler : MonoBehaviour //This script handles everything to
             Debug.Log(startTime);
 
             // Calculate the time remaining until the starfest starts
-            timeRemainingToStart = startTime - DateTime.Now;
-            timeRemainingToFinish = endTime - DateTime.Now;
+            StartCoroutine(CalculateTimeUntilStart());
+            StartCoroutine(CalculateTimeRemaining());
 
             // Start the countdown coroutine
-            StartCoroutine(countdownToStart());
         }
     }
 }
     IEnumerator countdownToStart()
     {
         Debug.Log("Countdown started");
+        Debug.Log(timeRemainingToStart);
         while (timeRemainingToStart.TotalSeconds > 0)
         {
             // Update the countdown text
@@ -159,8 +170,13 @@ public class StarFestHandler : MonoBehaviour //This script handles everything to
             timeRemainingToStart = timeRemainingToStart.Subtract(TimeSpan.FromSeconds(1));
         }
 
+        if(timeRemainingToStart.TotalSeconds <= 0){
+            print(timeRemainingToStart.TotalSeconds);
+            startStarfest();
+        }
+
         // Once the countdown reaches 0, start the starfest
-        startStarfest();
+
     }
 
     IEnumerator countdownToFinish()
@@ -237,28 +253,81 @@ public class StarFestHandler : MonoBehaviour //This script handles everything to
         }
     }
 
+IEnumerator CalculateTimeUntilStart() {
+    // Retrieve the current date and time from the API
+    UnityWebRequest request = UnityWebRequest.Get("http://localhost:3000/api/currentDateTime");
+    request.SetRequestHeader("x-api-key", "kD19^94ZttBJ!tq!UFj!Q");
+    yield return request.SendWebRequest();
+
+    if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError) {
+        Debug.Log(request.error);
+    } else {
+        // Calculate the time remaining to start the starfest
+        string dateTimeString = request.downloadHandler.text;
+        DateTime currentDateTime = DateTime.Parse(dateTimeString);
+        timeRemainingToStart = startTime.Subtract(currentDateTime);
+
+        Debug.Log("Time remaining to start the starfest: " + timeRemainingToStart.ToString());
+    }
+    StartCoroutine(countdownToStart());
+}
+
+IEnumerator CalculateTimeRemaining() {
+    // Retrieve the current date and time from the API
+    UnityWebRequest request = UnityWebRequest.Get("http://localhost:3000/api/currentDateTime");
+    request.SetRequestHeader("x-api-key", "kD19^94ZttBJ!tq!UFj!Q");
+    yield return request.SendWebRequest();
+
+    if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError) {
+        Debug.Log(request.error);
+    } else {
+        // Calculate the time remaining to finish the starfest
+        string dateTimeString = request.downloadHandler.text;
+        DateTime currentDateTime = DateTime.Parse(dateTimeString);
+        Debug.Log(currentDateTime);
+        Debug.Log(endTime);
+        timeRemainingToFinish = endTime.Subtract(currentDateTime);
+
+        Debug.Log("Time remaining to finish the starfest: " + timeRemainingToFinish.ToString());
+    }
+}
+
     void startStarfest()
     {
         StartCoroutine(countdownToFinish());
-        starfestPrompt.SetActive(true);
+        starfestRoomButton.SetActive(true);
+        print("I have been called!!!!!");
     }
     void endStarfest()
     {
         StartCoroutine(GetStarfestInfo());
         starfestPrompt.SetActive(false);
+        starfestRoomButton.SetActive(false);
     }
     public void ChooseTeamA()
     {
-        chosenTeam = 0;
+        chosenTeam = 1;
         StartCoroutine(IncrementTeam1CountCoroutine());
+        SetGraphicColor(starfestRoomButton, teamColor1);
+        teamText.text = "(Team " + team1Name + ")";
         starfestPrompt.SetActive(false);
     }
 
     public void ChooseTeamB()
     {
-        chosenTeam = 1;
+        chosenTeam = 2;
         StartCoroutine(IncrementTeam2CountCoroutine());
+        SetGraphicColor(starfestRoomButton, teamColor2);
+        teamText.text = "(Team " + team2Name + ")";
         starfestPrompt.SetActive(false);
+    }
+
+    public void openTeamChooser()
+    {
+        if (chosenTeam == 0)
+        {
+            starfestPrompt.SetActive(true);
+        }
     }
 
     private void SetGraphicColor(GameObject obj, string colorString)
