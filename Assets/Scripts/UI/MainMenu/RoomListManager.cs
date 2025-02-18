@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using System.Linq;
 
 namespace NSMB.UI.MainMenu {
     public class RoomListManager : MonoBehaviour, ILobbyCallbacks, IConnectionCallbacks {
@@ -36,6 +37,7 @@ namespace NSMB.UI.MainMenu {
 
         //---Private Variables
         private readonly Dictionary<string, RoomIcon> rooms = new();
+        private List<RoomInfo> quickplayRooms = new();
 
         public void Start() {
             NetworkHandler.Client.AddCallbackTarget(this);
@@ -105,8 +107,8 @@ namespace NSMB.UI.MainMenu {
             foreach (RoomIcon room in rooms.Values) {
                 Destroy(room.gameObject);
             }
-
             rooms.Clear();
+            quickplayRooms.Clear();
             filterRoomCountText.enabled = false;
         }
 
@@ -120,6 +122,31 @@ namespace NSMB.UI.MainMenu {
         public void OnRoomListUpdate(List<RoomInfo> roomList) {
             foreach (RoomInfo newRoomInfo in roomList) {
                 string roomName = newRoomInfo.Name;
+
+                // Check if it's a quickplay room using properties
+                bool isQuickplay = NetworkUtils.GetBooleanProperties(
+                    newRoomInfo.CustomProperties,
+                    out NetworkUtils.BooleanProperties props) && props.QuickPlay;
+
+                Debug.Log($"[RoomList] Room {roomName} - IsQuickplay: {isQuickplay}, Players: {newRoomInfo.PlayerCount}/{newRoomInfo.MaxPlayers}");
+
+                if (isQuickplay) {
+                    if (newRoomInfo.RemovedFromList) {
+                        Debug.Log($"[RoomList] Removing quickplay room {roomName}");
+                        quickplayRooms.RemoveAll(r => r.Name == roomName);
+                    } else {
+                        var existingIndex = quickplayRooms.FindIndex(r => r.Name == roomName);
+                        if (existingIndex != -1) {
+                            Debug.Log($"[RoomList] Updating existing quickplay room {roomName}");
+                            quickplayRooms[existingIndex] = newRoomInfo;
+                        } else {
+                            Debug.Log($"[RoomList] Adding new quickplay room {roomName}");
+                            quickplayRooms.Add(newRoomInfo);
+                        }
+                    }
+                    continue;
+                }
+
                 if (rooms.TryGetValue(roomName, out RoomIcon roomIcon)) {
                     // RoomIcon exists
                     if (newRoomInfo.RemovedFromList) {
@@ -137,7 +164,38 @@ namespace NSMB.UI.MainMenu {
                     }
                 }
             }
+
+            Debug.Log($"[RoomList] Current quickplay rooms: {quickplayRooms.Count}");
+            foreach (var room in quickplayRooms) {
+                Debug.Log($"[RoomList] -> {room.Name}: {room.PlayerCount}/{room.MaxPlayers}");
+            }
+
             RefreshRooms(false);
+        }
+
+        public RoomInfo GetAvailableQuickplayRoom(int maxPlayers) {
+            Debug.Log($"[RoomList] Searching for quickplay room with {maxPlayers} max players among {quickplayRooms.Count} rooms");
+
+            var availableRoom = quickplayRooms.FirstOrDefault(r => {
+                bool isQuickplay = NetworkUtils.GetBooleanProperties(
+                    r.CustomProperties,
+                    out NetworkUtils.BooleanProperties boolProps) && boolProps.QuickPlay;
+
+                bool hasSpace = r.PlayerCount < r.MaxPlayers;
+                bool matchesSize = r.MaxPlayers == maxPlayers;
+
+                Debug.Log($"[RoomList] Checking room {r.Name}: QuickPlay={isQuickplay}, HasSpace={hasSpace}, MatchesSize={matchesSize}");
+
+                return isQuickplay && hasSpace && matchesSize;
+            });
+
+            if (availableRoom != null) {
+                Debug.Log($"[RoomList] Found matching room: {availableRoom.Name}");
+            } else {
+                Debug.Log("[RoomList] No matching room found");
+            }
+
+            return availableRoom;
         }
 
         public void OnLobbyStatisticsUpdate(List<TypedLobbyInfo> lobbyStatistics) { }
@@ -153,7 +211,7 @@ namespace NSMB.UI.MainMenu {
         }
 
         public void OnRegionListReceived(RegionHandler regionHandler) { }
-
+        
         public void OnCustomAuthenticationResponse(Dictionary<string, object> data) { }
 
         public void OnCustomAuthenticationFailed(string debugMessage) { }

@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using System.Text.RegularExpressions;
+using NSMB.UI.MainMenu;
 
 public class NetworkHandler : Singleton<NetworkHandler>, IMatchmakingCallbacks, IConnectionCallbacks {
 
@@ -172,6 +173,81 @@ public class NetworkHandler : Singleton<NetworkHandler>, IMatchmakingCallbacks, 
         }
     }
 
+    public static async Task<short> QuickPlay(EnterRoomArgs args = null) {
+        args ??= new EnterRoomArgs();
+        int maxAttempts = 3; // Maximum number of attempts to find and join a room
+        int currentAttempt = 0;
+        int retryDelayMs = 3000; // 3 second delay between attempts (room deletion takes a while i guess?)
+
+        while (currentAttempt < maxAttempts) {
+            if (currentAttempt > 0) {
+                Debug.Log($"[Network] Waiting {retryDelayMs}ms before next quickplay join attempt");
+                await Task.Delay(retryDelayMs);
+            }
+
+            // Try to find a suitable quickplay room
+            var roomManager = GameObject.FindObjectOfType<RoomListManager>();
+            var existingRoom = roomManager?.GetAvailableQuickplayRoom(args.RoomOptions.MaxPlayers);
+
+            if (existingRoom != null) {
+                args.RoomName = existingRoom.Name;
+                short joinResult = await Client.JoinRoomAsync(args, false);
+
+                if (joinResult == ErrorCode.GameDoesNotExist) {
+                    Debug.Log($"[Network] Quickplay room {existingRoom.Name} was deleted, attempting to find another room (Attempt {currentAttempt + 1}/{maxAttempts})");
+                    currentAttempt++;
+                    continue; // Try finding another room
+                } else if (joinResult != 0) { // 0 indicates success
+                    Debug.LogError($"[Network] Failed to join quickplay room with error code: {joinResult}");
+                    return joinResult; // Return the error code
+                }
+
+                return joinResult; // Success case
+            } else {
+                Debug.Log("[Network] No suitable quickplay rooms found, creating new room");
+                break; // No rooms found, exit loop and create new room
+            }
+        }
+
+        if (currentAttempt >= maxAttempts) {
+            Debug.Log("[Network] Max attempts reached trying to join existing rooms, creating new room");
+        }
+
+        // Create a new room since we either found no rooms or failed to join after several attempts
+        StringBuilder idBuilder = new();
+
+        // First char should correspond to region
+        int index = Regions.IndexOf(r => r.Code.Equals(Region, StringComparison.InvariantCultureIgnoreCase));
+        idBuilder.Append(RoomIdValidChars[index >= 0 ? index : 0]);
+
+        // Fill with random chars
+        UnityEngine.Random.InitState(unchecked((int) DateTime.UtcNow.Subtract(DateTime.UnixEpoch).TotalSeconds));
+        for (int i = 1; i < RoomIdLength; i++) {
+            idBuilder.Append(RoomIdValidChars[UnityEngine.Random.Range(0, RoomIdValidChars.Length)]);
+        }
+
+        args.RoomName = idBuilder.ToString();
+        args.Lobby = TypedLobby.Default;
+        args.RoomOptions.PublishUserId = true;
+        args.RoomOptions.CustomRoomProperties = DefaultRoomProperties;
+        args.RoomOptions.CustomRoomProperties[Enums.NetRoomProperties.HostName] = Settings.Instance.generalNickname;
+
+        // Set quickplay and teams flags
+        var boolProps = (BooleanProperties) (int) args.RoomOptions.CustomRoomProperties[Enums.NetRoomProperties.BoolProperties];
+        boolProps.QuickPlay = true;
+        boolProps.Teams = true;
+        args.RoomOptions.CustomRoomProperties[Enums.NetRoomProperties.BoolProperties] = (int) boolProps;
+
+        args.RoomOptions.CustomRoomPropertiesForLobby = new object[] {
+        Enums.NetRoomProperties.HostName,
+        Enums.NetRoomProperties.IntProperties,
+        Enums.NetRoomProperties.BoolProperties,
+        Enums.NetRoomProperties.StageGuid
+    };
+
+        return await Client.CreateAndJoinRoomAsync(args, false);
+    }
+
     public static async Task<short> CreateRoom(EnterRoomArgs args) {
         // Create a random room id.
         StringBuilder idBuilder = new();
@@ -210,6 +286,14 @@ public class NetworkHandler : Singleton<NetworkHandler>, IMatchmakingCallbacks, 
         id = id.ToUpper();
         regionIndex = RoomIdValidChars.IndexOf(id[0]);
         return regionIndex >= 0 && regionIndex < Regions.Count() && Regex.IsMatch(id, $"[{RoomIdValidChars}]{{8}}");
+    }
+
+    public static bool IsQuickPlayRoom() {
+        if (Client?.CurrentRoom == null) return false;
+
+        return Client.CurrentRoom.CustomProperties.TryGetValue(
+            Enums.NetRoomProperties.BoolProperties,
+            out object props) && ((int) props & (1 << 4)) != 0; // Using a bit in BoolProperties for quickplay
     }
 
     public static async Task<short> JoinRoom(EnterRoomArgs args) {
@@ -316,7 +400,7 @@ public class NetworkHandler : Singleton<NetworkHandler>, IMatchmakingCallbacks, 
         if (!Game.PlayerIsLocal(host)) {
             return;
         }
-        
+
         ref GameRules rules = ref f.Global->Rules;
         IntegerProperties intProperties = new IntegerProperties {
             StarRequirement = rules.StarsToWin,
@@ -324,18 +408,26 @@ public class NetworkHandler : Singleton<NetworkHandler>, IMatchmakingCallbacks, 
             Lives = rules.Lives,
             Timer = rules.TimerSeconds,
         };
-        BooleanProperties boolProperties = new BooleanProperties {
-            GameStarted = f.Global->GameState != GameState.PreGameRoom,
-            CustomPowerups = rules.CustomPowerupsEnabled,
-            Teams = rules.TeamsEnabled,
-            DrawOnTimeUp = rules.DrawOnTimeUp,
-        };
 
-        RuntimePlayer hostData = f.GetPlayerData(host);
+        // Get existing boolean properties to preserve quickplay flag
+        BooleanProperties boolProperties = NetworkUtils.GetBooleanProperties(
+            Client.CurrentRoom.CustomProperties,
+            out NetworkUtils.BooleanProperties existingProps)
+                ? existingProps
+                : new BooleanProperties();
+
+        // Update other boolean properties while preserving quickplay
+        boolProperties.GameStarted = f.Global->GameState != GameState.PreGameRoom;
+        boolProperties.CustomPowerups = rules.CustomPowerupsEnabled;
+        boolProperties.Teams = rules.TeamsEnabled;
+        boolProperties.DrawOnTimeUp = rules.DrawOnTimeUp;
+        // Note: We don't modify boolProperties.QuickPlay here, preserving its existing value
+
+        RuntimePlayer runtimePlayer = f.GetPlayerData(host);
         Client.CurrentRoom.SetCustomProperties(new Photon.Client.PhotonHashtable {
             [Enums.NetRoomProperties.IntProperties] = (int) intProperties,
             [Enums.NetRoomProperties.BoolProperties] = (int) boolProperties,
-            [Enums.NetRoomProperties.HostName] = (string) hostData.PlayerNickname,
+            [Enums.NetRoomProperties.HostName] = runtimePlayer.PlayerNickname,
             [Enums.NetRoomProperties.StageGuid] = rules.Stage.Id.ToString(),
         });
     }
@@ -604,7 +696,7 @@ public class NetworkHandler : Singleton<NetworkHandler>, IMatchmakingCallbacks, 
         if (enable) {
             if (f.Global->GameState >= GameState.Starting && f.Global->GameState < GameState.Ended) {
                 RecordReplay(Game, f);
-            }    
+            }
         } else {
             // Disable
             DisposeReplay();

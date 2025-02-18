@@ -6,8 +6,8 @@ namespace NSMB.Utils {
     public static class NetworkUtils {
 
         public static PhotonHashtable DefaultRoomProperties => new() {
-            [Enums.NetRoomProperties.IntProperties] = (int) IntegerProperties.Default,
-            [Enums.NetRoomProperties.BoolProperties] = (int) BooleanProperties.Default,
+            [Enums.NetRoomProperties.IntProperties] = (int)IntegerProperties.Default,
+            [Enums.NetRoomProperties.BoolProperties] = (int)BooleanProperties.Default,
             [Enums.NetRoomProperties.StageGuid] = GlobalController.Instance.config.DefaultRules.Stage.Id.ToString(),
         };
 
@@ -80,7 +80,13 @@ namespace NSMB.Utils {
                 CustomPowerups = true
             };
 
-            public bool CustomPowerups, Teams, DrawOnTimeUp, GameStarted;
+            // Bit layout:
+            // 0: CustomPowerups
+            // 1: Teams
+            // 2: DrawOnTimeUp
+            // 3: GameStarted
+            // 4: QuickPlay
+            public bool CustomPowerups, Teams, DrawOnTimeUp, GameStarted, QuickPlay;
 
             public static implicit operator int(BooleanProperties props) {
                 int value = 0;
@@ -89,23 +95,36 @@ namespace NSMB.Utils {
                 Utils.BitSet(ref value, 1, props.Teams);
                 Utils.BitSet(ref value, 2, props.DrawOnTimeUp);
                 Utils.BitSet(ref value, 3, props.GameStarted);
+                Utils.BitSet(ref value, 4, props.QuickPlay);
 
                 return value;
             }
 
             public static implicit operator BooleanProperties(int bits) {
-                return new() {
+                BooleanProperties ret = new() {
                     CustomPowerups = Utils.BitTest(bits, 0),
                     Teams = Utils.BitTest(bits, 1),
                     DrawOnTimeUp = Utils.BitTest(bits, 2),
                     GameStarted = Utils.BitTest(bits, 3),
+                    QuickPlay = Utils.BitTest(bits, 4)
                 };
+                return ret;
             }
         };
 
+        public static bool GetBooleanProperties(PhotonHashtable table, out BooleanProperties value) {
+            if (table.TryGetValue(Enums.NetRoomProperties.BoolProperties, out object objValue) && objValue is int intValue) {
+                value = new BooleanProperties();
+                value = intValue; // Use the implicit operator
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
         public static bool GetCustomProperty<T>(PhotonHashtable table, string key, out T value) {
-            if (table.TryGetValue(key, out object objValue)) {
-                value = (T) objValue;
+            if (table.TryGetValue(key, out object objValue) && objValue is T typedValue) {
+                value = typedValue;
                 return true;
             }
             value = default;
@@ -114,7 +133,7 @@ namespace NSMB.Utils {
 
         public static bool GetCustomProperty(PhotonHashtable table, string key, out bool value) {
             if (table.TryGetValue(key, out object objValue)) {
-                value = (int) objValue == 1;
+                value = (int)objValue == 1;
                 return true;
             }
             value = default;
